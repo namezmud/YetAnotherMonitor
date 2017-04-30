@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import paho.mqtt.client as mqtt
 import re
-import time
+import datetime
 import json
 
 #
@@ -13,6 +13,10 @@ import json
 #}
 sensor_list = json.loads(open('sensor_list.json').read())
 
+#build a numeric (not float) timestamp with ms precision
+def ts_ms(d):
+    return int(d.timestamp()*1000)
+
 # The callback when client receives a CANNACK from server
 def on_connect(client, userdata, flags, rc):
     print("Connected : " + str(rc))
@@ -23,8 +27,10 @@ def on_connect(client, userdata, flags, rc):
 
 #The callback when PUBLISH received from server
 def on_message(client, userdata, msg):
+    time_now = datetime.datetime.now()
     if (re.search(r'data/temperature', msg.topic)):
         ma = re.search(r'(.*)=(.*)C', msg.payload.decode("utf-8"))
+
         if ma:
             if ma.group(1) in sensor_list:
                 sensor = ma.group(1)
@@ -32,7 +38,8 @@ def on_message(client, userdata, msg):
                 name = sensor_list[sensor]
                 
                 data = {"name" : name,
-                        "time" : time.strftime('{%Y-%m-%d %H%M%S}'),
+                        "time_ms" : ts_ms(time_now),
+                        "time_str" : time_now.strftime('%Y-%m-%d %H%M%S'),
                         "temperature" : temperature,
                         "ID" : sensor}
                 print(json.dumps(data))
@@ -45,7 +52,8 @@ def on_message(client, userdata, msg):
             rate = temperature = ma.group(2)
             name = "Turtle Tank"
             data = {"name" : name,
-                    "time" : time.strftime('{%Y-%m-%d %H%M%S}'),
+                    "time_ms" : ts_ms(time_now),
+                    "time_str" : time_now.strftime('%Y-%m-%d %H%M%S'),
                     "flow" : rate,
                     "ID"   : ma.group(1)}
             print(json.dumps(data))
