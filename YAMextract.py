@@ -35,8 +35,8 @@ class YAMextract():
         time_ms = int(start_time.timestamp() * 1000) # TODO cleanup
 
 
-        data = table.query_2(name__eq="Temp.Hatchy")
-        #data = table.query_2(time_ms__ge=time_ms)
+#data = table.query_2(name__eq="Temp.Hatchy")
+        data = table.scan(time_ms__gte=time_ms)
 
         series = {}
         # not assuming the db entries are in time order.
