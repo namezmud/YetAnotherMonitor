@@ -1,7 +1,7 @@
 from bokeh.io import output_file, show
 import bokeh
 from bokeh.plotting import figure
-from bokeh.charts import TimeSeries, Scatter, show, output_file
+#from bokeh.charts import TimeSeries, Scatter, show, output_file
 from bokeh.embed import components
 from bokeh.models import HoverTool
 
@@ -15,7 +15,7 @@ class YAMdisplay():
         None
 
     def buildTemperature(self, series):
-        p = bokeh.plotting.figure(plot_width=1000,
+        p = bokeh.plotting.figure(plot_width=600,
                                   plot_height=500, x_axis_type="datetime",
                                   x_axis_label="Date / Time",
                                   y_axis_label="Temperature dgC", y_range = (15.0,33.0),
@@ -30,7 +30,7 @@ class YAMdisplay():
         #colors = bokeh.palettes.d3["Category20b"][12]
         colors = bokeh.palettes.brewer['Paired'][12]
         
-        max_lines = 100
+        max_lines = 20
         lines = 0
         
         for name in series:

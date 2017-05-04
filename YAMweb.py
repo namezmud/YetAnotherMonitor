@@ -10,11 +10,11 @@ import YAMdisplay
 import YAMextract
 import pickle
 
-app = Flask(__name__)
+application = Flask(__name__)
 
-app.vars={}
+application.vars={}
 
-@app.route('/', methods=['GET', 'POST'])
+@application.route('/', methods=['GET', 'POST'])
 def index():
 
     yam = YAMdisplay.YAMdisplay()
@@ -28,15 +28,19 @@ def index():
 #        data = pickle.load(infile)
     
     [script, div] = yam.getTemperature(data)
+#    [script, div] = ["", ""]
         
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
 
-    return render_template('graph.html',
+    #return render_template('graph.html',
+    return render_template('index.html',
                            script=script,
                            js_resources=js_resources,
                            css_resources=css_resources,
                            div=div)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+
+    application.debug = True
+    application.run()
