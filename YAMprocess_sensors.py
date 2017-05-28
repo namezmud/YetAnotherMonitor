@@ -13,6 +13,8 @@ import logging
 #        "28FFF58B641502E5":"Turtle Tank"
 #}
 sensor_list = json.loads(open('sensor_list.json').read())
+# Minimum interval to publish data.
+interval_mins = 10
 
 #build a numeric (not float) timestamp with ms precision
 def ts_ms(d):
@@ -38,10 +40,12 @@ def on_message(client, userdata, msg):
                 sensor = ma.group(1)
                 temperature = ma.group(2)
                 name = sensor_list[sensor]
-                if name not in last["temperature"] or last["temperature"][name] < time_now - datetime.timedelta(minutes=4, seconds=50):
+
+                #downsample to Xmin intervals. Don't need the high rate of data.
+                if name not in last["temperature"] or last["temperature"][name] < time_now - datetime.timedelta(minutes=interval_mins):
                     data = {"name" : name,
                             "time_ms" : ts_ms(time_now),
-                            "time_str" : time_now.strftime('%Y-%m-%d %H%M%S'),
+                            "daykey" : int("%d%03d" % (time_now.timetuple()[0], time_now.timetuple()[7])),
                             "temperature" : temperature,
                             "ID" : sensor}
                     logging.info(json.dumps(data))
@@ -60,7 +64,7 @@ def on_message(client, userdata, msg):
 
                 data = {"name" : name,
                         "time_ms" : ts_ms(time_now),
-                        "time_str" : time_now.strftime('%Y-%m-%d %H%M%S'),
+                        "daykey" : "%d%03d" % (time_now.timetuple()[0], time_now.timetuple()[7]),
                         "flow" : rate,
                         "ID"   : ma.group(1)}
                 logging.info(json.dumps(data))
