@@ -8,6 +8,7 @@ from bokeh.layouts import column
 import bokeh.palettes
 import datetime
 import time
+from pytz import timezone
 
 # Create the figure with Bokeh.
 # call showTemeprature to display or getTemperature to embed in html.
@@ -37,8 +38,8 @@ class YAMdisplay():
         max_lines = 20
         lines = 0
 
-        min_time = datetime.datetime.max
-        max_time = datetime.datetime.min
+        min_time = timezone('Australia/Melbourne').localize(datetime.datetime.max - datetime.timedelta(days=1))
+        max_time = timezone('Australia/Melbourne').localize(datetime.datetime.min + datetime.timedelta(days=1))
         
         for name in series:
             lines = lines +1
@@ -63,18 +64,18 @@ class YAMdisplay():
                 try:
                     # TODO, make more pythonic.
                     if temp_str is not None:
-                        time = datetime.datetime.fromtimestamp(time)
-                        time_str = time.strftime("%H:%M")
+                        dttime = datetime.datetime.fromtimestamp(time, tz = timezone('Australia/Melbourne'))
+                        time_str = dttime.strftime("%H:%M")
                         temp = float(temp_str)
 
                         # If there is a gap in the data, insert a NaN to create a gap in the plot
-                        if len(data["time"]) > 0 and (time - data["time"][-1] > datetime.timedelta(hours=1)):
+                        if len(data["time"]) > 0 and (dttime - data["time"][-1] > datetime.timedelta(hours=1)):
                             data["time"].append(data["time"][-1] + datetime.timedelta(seconds = 10))
                             data["time_str"].append("")
                             data["name"].append(name)
                             data["temp"].append(float("nan"))                          
                             
-                        data["time"].append(time)
+                        data["time"].append(dttime)
                         data["time_str"].append(time_str)
                         data["name"].append(name)
                         data["temp"].append(temp)
@@ -86,12 +87,15 @@ class YAMdisplay():
             min_time = min(min_time, data["time"][0])
             p.line(source=data, x="time", y="temp", color=color, line_width=2, legend=name)
 
+        print(max_time)
         # Make shaded boxes for nights
         night_boxes = []
         d = min_time - datetime.timedelta(days=1)
         while d < max_time:
             start = datetime.datetime.combine(d.date(), datetime.time(hour=19))
             end = datetime.datetime.combine(d.date() + datetime.timedelta(days=1), datetime.time(hour=7))
+            start = timezone('Australia/Melbourne').localize(start)
+            end = timezone('Australia/Melbourne').localize(end)
             print (start, end)
             night_boxes.append(
                bokeh.models.BoxAnnotation(plot=p, left=start.timestamp()*1000, right=end.timestamp()*1000, 
